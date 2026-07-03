@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>URL Shortener</title>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    max-width: 560px;
+    margin: 60px auto;
+    padding: 0 20px;
+    color: #1a1a1a;
+  }
+  h1 { font-size: 1.6rem; margin-bottom: 4px; }
+  p.sub { color: #666; margin-top: 0; margin-bottom: 32px; }
+  .card {
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  input[type=text] {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 0.95rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box;
+    margin-bottom: 10px;
+  }
+  button {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    cursor: pointer;
+  }
+  button:hover { background: #1d4ed8; }
+  .result {
+    margin-top: 14px;
+    padding: 12px;
+    background: #f4f6fb;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    word-break: break-all;
+    display: none;
+  }
+  .result.show { display: block; }
+  .result a { color: #2563eb; font-weight: 600; }
+  .error { color: #c0392b; }
+  .stats-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 0.9rem; gap: 12px; }
+  .stats-row span:first-child { color: #666; white-space: nowrap; }
+</style>
+</head>
+<body>
+  <h1>URL Shortener</h1>
+  <p class="sub">Paste a link, get a short one.</p>
+
+  <div class="card">
+    <input type="text" id="longUrl" placeholder="https://example.com/a-very-long-link">
+    <button onclick="shortenUrl()">Shorten</button>
+    <div id="shortenResult" class="result"></div>
+  </div>
+
+  <div class="card">
+    <input type="text" id="statsCode" placeholder="Short code or full short link">
+    <button onclick="checkStats()">Check stats</button>
+    <div id="statsResult" class="result"></div>
+  </div>
+
+<script>
+async function shortenUrl() {
+  const url = document.getElementById('longUrl').value.trim();
+  const resultEl = document.getElementById('shortenResult');
+  resultEl.classList.remove('show');
+  if (!url) return;
+
+  try {
+    const res = await fetch('/shorten', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      resultEl.innerHTML = `<span class="error">${data.detail ? JSON.stringify(data.detail) : 'Something went wrong'}</span>`;
+    } else {
+      const fullShortUrl = window.location.origin + data.short_url;
+      resultEl.innerHTML = `Short link: <a href="${data.short_url}" target="_blank">${fullShortUrl}</a>`;
+    }
+    resultEl.classList.add('show');
+  } catch (err) {
+    resultEl.innerHTML = `<span class="error">Request failed: ${err}</span>`;
+    resultEl.classList.add('show');
+  }
+}
+
+function extractShortCode(input) {
+  input = input.trim();
+  if (!input) return '';
+  // Someone pasted a full short URL, e.g. http://localhost:8000/D1yMox
+  try {
+    const url = new URL(input);
+    const segments = url.pathname.split('/').filter(Boolean);
+    return segments.length ? segments[segments.length - 1] : input;
+  } catch (e) {
+    // Not a valid full URL — could be a bare code, or missing the scheme
+    // (e.g. "localhost:8000/D1yMox"). Take whatever's after the last slash.
+    const segments = input.split('/').filter(Boolean);
+    return segments[segments.length - 1];
+  }
+}
+
+async function checkStats() {
+  const code = extractShortCode(document.getElementById('statsCode').value);
+  const resultEl = document.getElementById('statsResult');
+  resultEl.classList.remove('show');
+  if (!code) return;
+
+  try {
+    const res = await fetch(`/stats/${encodeURIComponent(code)}`);
+    const data = await res.json();
+
+    if (!res.ok) {
+      resultEl.innerHTML = `<span class="error">${data.detail || 'Not found'}</span>`;
+    } else {
+      resultEl.innerHTML = `
+        <div class="stats-row"><span>Original URL</span><span>${data.original_url}</span></div>
+        <div class="stats-row"><span>Clicks</span><span>${data.clicks}</span></div>
+        <div class="stats-row"><span>Created</span><span>${data.created_at}</span></div>
+      `;
+    }
+    resultEl.classList.add('show');
+  } catch (err) {
+    resultEl.innerHTML = `<span class="error">Request failed: ${err}</span>`;
+    resultEl.classList.add('show');
+  }
+}
+</script>
+</body>
+</html>
