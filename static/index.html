@@ -71,6 +71,31 @@
   </div>
 
 <script>
+// Responses can echo user-supplied values back — a 422 from /shorten includes
+// the offending input — so render them with textContent rather than
+// interpolating them into innerHTML.
+function showError(el, message) {
+  const span = document.createElement('span');
+  span.className = 'error';
+  span.textContent = message;
+
+  el.replaceChildren(span);
+  el.classList.add('show');
+}
+
+function statsRow(label, value) {
+  const row = document.createElement('div');
+  row.className = 'stats-row';
+
+  const labelEl = document.createElement('span');
+  labelEl.textContent = label;
+  const valueEl = document.createElement('span');
+  valueEl.textContent = value;
+
+  row.append(labelEl, valueEl);
+  return row;
+}
+
 async function shortenUrl() {
   const url = document.getElementById('longUrl').value.trim();
   const resultEl = document.getElementById('shortenResult');
@@ -86,15 +111,18 @@ async function shortenUrl() {
     const data = await res.json();
 
     if (!res.ok) {
-      resultEl.innerHTML = `<span class="error">${data.detail ? JSON.stringify(data.detail) : 'Something went wrong'}</span>`;
+      showError(resultEl, data.detail ? JSON.stringify(data.detail) : 'Something went wrong');
     } else {
-      const fullShortUrl = window.location.origin + data.short_url;
-      resultEl.innerHTML = `Short link: <a href="${data.short_url}" target="_blank">${fullShortUrl}</a>`;
+      const link = document.createElement('a');
+      link.href = data.short_url;
+      link.target = '_blank';
+      link.textContent = window.location.origin + data.short_url;
+
+      resultEl.replaceChildren('Short link: ', link);
+      resultEl.classList.add('show');
     }
-    resultEl.classList.add('show');
   } catch (err) {
-    resultEl.innerHTML = `<span class="error">Request failed: ${err}</span>`;
-    resultEl.classList.add('show');
+    showError(resultEl, `Request failed: ${err}`);
   }
 }
 
@@ -125,18 +153,17 @@ async function checkStats() {
     const data = await res.json();
 
     if (!res.ok) {
-      resultEl.innerHTML = `<span class="error">${data.detail || 'Not found'}</span>`;
+      showError(resultEl, data.detail || 'Not found');
     } else {
-      resultEl.innerHTML = `
-        <div class="stats-row"><span>Original URL</span><span>${data.original_url}</span></div>
-        <div class="stats-row"><span>Clicks</span><span>${data.clicks}</span></div>
-        <div class="stats-row"><span>Created</span><span>${data.created_at}</span></div>
-      `;
+      resultEl.replaceChildren(
+        statsRow('Original URL', data.original_url),
+        statsRow('Clicks', data.clicks),
+        statsRow('Created', data.created_at)
+      );
+      resultEl.classList.add('show');
     }
-    resultEl.classList.add('show');
   } catch (err) {
-    resultEl.innerHTML = `<span class="error">Request failed: ${err}</span>`;
-    resultEl.classList.add('show');
+    showError(resultEl, `Request failed: ${err}`);
   }
 }
 </script>

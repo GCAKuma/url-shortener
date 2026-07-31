@@ -1,0 +1,22 @@
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+
+[tool.ruff.lint]
+# E/F = pycodestyle + pyflakes, I = import sorting, B = common bugs,
+# UP = flag syntax that's outdated for the target Python version.
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.ruff.lint.flake8-bugbear]
+# `db: Session = Depends(get_db)` is the documented FastAPI idiom, so B008's
+# "no function calls in argument defaults" rule doesn't apply to it.
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Path", "fastapi.Body"]
+
+[tool.ruff.lint.per-file-ignores]
+# The test module has to set DATABASE_URL before app.database is imported,
+# so its imports legitimately don't all sit at the top of the file.
+"tests/test_main.py" = ["E402"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

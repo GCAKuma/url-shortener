@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Virtual environments
+venv/
+.venv/
+
+# Test / tooling caches
+.pytest_cache/
+.ruff_cache/
+
+# SQLite databases — created at runtime, never committed
+*.db
+
+# Local env overrides
+.env
+
+# Local editor / agent tooling
+.claude/

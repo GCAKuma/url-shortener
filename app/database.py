@@ -8,11 +8,7 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./shortener.db")
 
 # SQLite needs this flag when used with FastAPI's threaded request handling.
-connect_args = (
-    {"check_same_thread": False}
-    if SQLALCHEMY_DATABASE_URL.startswith("sqlite")
-    else {}
-)
+connect_args = {"check_same_thread": False} if SQLALCHEMY_DATABASE_URL.startswith("sqlite") else {}
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args=connect_args)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

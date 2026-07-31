@@ -1,0 +1,5 @@
+# Normalise line endings so a Windows checkout and a Linux CI runner see the
+# same bytes — otherwise `ruff format --check` can pass locally and fail in CI.
+* text=auto eol=lf
+
+*.db binary

@@ -1,6 +1,5 @@
 import secrets
 import string
-from typing import Optional
 
 from sqlalchemy.orm import Session
 
@@ -35,7 +34,7 @@ def create_short_url(db: Session, original_url: str) -> models.URL:
     return url_entry
 
 
-def get_url_by_code(db: Session, short_code: str) -> Optional[models.URL]:
+def get_url_by_code(db: Session, short_code: str) -> models.URL | None:
     return db.query(models.URL).filter(models.URL.short_code == short_code).first()
 
 
