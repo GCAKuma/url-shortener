@@ -8,7 +8,7 @@ on:
 
 # A new push to the same branch cancels the run still in flight.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}  # CI-main (workflow name + branch)
   cancel-in-progress: true
 
 jobs:
@@ -20,7 +20,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          # Must match the Dockerfile base image, so we test what we ship.
+          # Version Must match the Dockerfile base image, so we test what we ship.
           python-version: "3.14"
           cache: pip
 
