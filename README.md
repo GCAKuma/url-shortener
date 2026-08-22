@@ -1,3 +1,4 @@
+[![CI](https://github.com/GCAKuma/url-shortener/actions/workflows/ci.yml/badge.svg)](https://github.com/GCAKuma/url-shortener/actions/workflows/ci.yml)
 # URL Shortener
 
 A small FastAPI service that shortens URLs and tracks click counts, built as a
